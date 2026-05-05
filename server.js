@@ -68,3 +68,21 @@ app.get("/board3", async (req, res) => {
 app.listen(PORT, () => {
   console.log("🚀 Running on port " + PORT);
 });
+app.get("/board1-view", async (req, res) => {
+  const data = await fetchData(BOARD1);
+
+  let html = "<h2>📊 BẢNG 1</h2><table border='1'><tr><th>Mã</th><th>Giá</th><th>%</th><th>Vol</th><th>Tín hiệu</th></tr>";
+
+  data.map(analyze).forEach(s => {
+    html += `<tr>
+      <td>${s.symbol}</td>
+      <td>${s.price}</td>
+      <td>${s.percent}%</td>
+      <td>${s.volume}</td>
+      <td>${s.signal}</td>
+    </tr>`;
+  });
+
+  html += "</table>";
+  res.send(html);
+});
