@@ -16,11 +16,15 @@ async function fetchData(symbols) {
       try {
         const url = `https://iboard.ssi.com.vn/dchart/api/intraday?symbol=${symbol}`;
         const res = await axios.get(url);
+
+        console.log(symbol, res.data?.length); // 👈 DEBUG
+
         return {
           symbol,
           data: res.data
         };
-      } catch {
+      } catch (err) {
+        console.log("ERROR", symbol);
         return null;
       }
     })
