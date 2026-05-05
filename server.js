@@ -14,13 +14,25 @@ const BOARD3 = ["DIG","DXG","SCR","HQC","ASM","IDI","VIX","SHB","TPB"];
 
 // ===== FETCH DATA =====
 async function fetchData(symbols) {
-  const url = "https://iboard.ssi.com.vn/dchart/api/intraday?symbol=" + symbols.join(",");
-  const res = await axios.get(url);
-  return res.data;
+  const results = await Promise.all(
+    symbols.map(async (symbol) => {
+      try {
+        const url = `https://iboard.ssi.com.vn/dchart/api/intraday?symbol=${symbol}`;
+        const res = await axios.get(url);
+        return res.data;
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  return results.filter(Boolean);
 }
 
 // ===== ANALYZE =====
 function analyze(s) {
+  if (!s) return null;
+
   const percent = ((s.c - s.r) / s.r) * 100;
 
   let signal = "";
