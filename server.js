@@ -7,21 +7,26 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3001;
 
-const SYMBOLS = ["VIX","MBB","MSB","VIC","TCB","VPB"];
+// ===== DANH SÁCH =====
+const BOARD1 = ["SHB","MSB","MBB","VIB","TPB","TCB","VPB","VCB","BID","CTG","FPT","VIX","VIC"];
+const BOARD2 = ["GAS","PVD","PVS","HAH","VSC","VJC","HVN","CMG"];
+const BOARD3 = ["DIG","DXG","SCR","HQC","ASM","IDI","VIX","SHB","TPB"];
 
-async function fetchData() {
-  const url = "https://iboard.ssi.com.vn/dchart/api/intraday?symbol=" + SYMBOLS.join(",");
+// ===== FETCH DATA =====
+async function fetchData(symbols) {
+  const url = "https://iboard.ssi.com.vn/dchart/api/intraday?symbol=" + symbols.join(",");
   const res = await axios.get(url);
   return res.data;
 }
 
+// ===== ANALYZE =====
 function analyze(s) {
   const percent = ((s.c - s.r) / s.r) * 100;
 
   let signal = "";
   if (s.v > 1000000 && percent > 1.5) signal = "🚀 KÉO";
-  if (s.v > 1000000 && percent < -2) signal = "⚠️ XẢ";
-  if (s.v > 1000000 && percent < 0.5) signal = "⚠️ XẢ KÍN";
+  else if (s.v > 1000000 && percent < -2) signal = "⚠️ XẢ";
+  else if (s.v > 1000000 && percent < 0.5) signal = "⚠️ XẢ KÍN";
 
   return {
     symbol: s.s,
@@ -32,12 +37,31 @@ function analyze(s) {
   };
 }
 
+// ===== ROUTES =====
 app.get("/board1", async (req, res) => {
   try {
-    const data = await fetchData();
+    const data = await fetchData(BOARD1);
     res.json(data.map(analyze));
   } catch {
-    res.status(500).send("API lỗi");
+    res.status(500).send("Error board1");
+  }
+});
+
+app.get("/board2", async (req, res) => {
+  try {
+    const data = await fetchData(BOARD2);
+    res.json(data.map(analyze));
+  } catch {
+    res.status(500).send("Error board2");
+  }
+});
+
+app.get("/board3", async (req, res) => {
+  try {
+    const data = await fetchData(BOARD3);
+    res.json(data.map(analyze));
+  } catch {
+    res.status(500).send("Error board3");
   }
 });
 
