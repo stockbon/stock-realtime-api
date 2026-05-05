@@ -36,9 +36,9 @@ async function fetchData(symbols) {
 function analyze(s) {
   if (!s || !s.data || s.data.length === 0) {
     return {
-      symbol: s?.symbol || "N/A",
-      price: 0,
-      percent: "0.00",
+      symbol: s.symbol,
+      price: "N/A",
+      percent: "N/A",
       volume: 0,
       signal: "NO DATA"
     };
@@ -47,22 +47,17 @@ function analyze(s) {
   const last = s.data[s.data.length - 1];
 
   const price = last.matchPrice || 0;
-  const ref = last.referencePrice || price || 1;
+  const ref = last.referencePrice || price;
   const volume = last.totalVolume || 0;
 
-  const percent = ((price - ref) / ref) * 100;
-
-  let signal = "";
-  if (volume > 1000000 && percent > 1.5) signal = "🚀 KÉO";
-  else if (volume > 1000000 && percent < -2) signal = "⚠️ XẢ";
-  else if (volume > 1000000 && percent < 0.5) signal = "⚠️ XẢ KÍN";
+  const percent = ref ? ((price - ref) / ref) * 100 : 0;
 
   return {
     symbol: s.symbol,
     price,
     percent: percent.toFixed(2),
     volume,
-    signal
+    signal: ""
   };
 }
 
