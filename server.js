@@ -28,27 +28,24 @@ async function fetchBoard() {
 
     return res.data.data || [];
   } catch (err) {
-    console.log("Fetch lỗi:", err.message);
+    //console.log("Fetch lỗi:", err.message);
+    console.log(raw[0]);
     return [];
   }
 }
 
 // ===== PHÂN TÍCH =====
 function analyze(s) {
-  const price = Number(s.price) || 0;
+  const price = Number(s.lastPrice) || 0;
   const ref = Number(s.refPrice) || price || 1;
-  const volume = Number(s.totalVol) || 0;
+  const volume = Number(s.matchedVol) || 0;
 
   const percent = ((price - ref) / ref) * 100;
 
-  // trạng thái giá
   let status = "⚖️";
-  if (price === s.ceiling) status = "🟣 Trần";
-  else if (price === s.floor) status = "🔵 Sàn";
-  else if (price > ref) status = "🟢 Tăng";
+  if (price > ref) status = "🟢 Tăng";
   else if (price < ref) status = "🔴 Giảm";
 
-  // dòng tiền
   let signal = "";
   if (volume > 2000000 && percent > 1.5) signal = "🚀 KÉO";
   else if (volume > 2000000 && percent < -2) signal = "⚠️ XẢ";
