@@ -27,18 +27,27 @@ async function fetchData(symbols) {
 }
 
 function analyze(s) {
-  const percent = ((s.c - s.r) / s.r) * 100;
+  if (!s || !s.data) return null;
+
+  const last = s.data[s.data.length - 1];
+  if (!last) return null;
+
+  const price = last.matchPrice;
+  const ref = last.referencePrice || price;
+  const volume = last.totalVolume;
+
+  const percent = ((price - ref) / ref) * 100;
 
   let signal = "";
-  if (s.v > 1000000 && percent > 1.5) signal = "🚀 KÉO";
-  else if (s.v > 1000000 && percent < -2) signal = "⚠️ XẢ";
-  else if (s.v > 1000000 && percent < 0.5) signal = "⚠️ XẢ KÍN";
+  if (volume > 1000000 && percent > 1.5) signal = "🚀 KÉO";
+  else if (volume > 1000000 && percent < -2) signal = "⚠️ XẢ";
+  else if (volume > 1000000 && percent < 0.5) signal = "⚠️ XẢ KÍN";
 
   return {
-    symbol: s.s,
-    price: s.c,
+    symbol: s.symbol,
+    price,
     percent: percent.toFixed(2),
-    volume: s.v,
+    volume,
     signal
   };
 }
