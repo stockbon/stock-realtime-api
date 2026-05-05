@@ -79,3 +79,4 @@ app.get("/board1", async (req, res) => {
 app.listen(PORT, () => {
   console.log("🚀 Vietstock API running");
 });
+data.sort((a,b) => (b.volume * b.percent) - (a.volume * a.percent));
