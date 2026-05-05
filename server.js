@@ -34,14 +34,21 @@ async function fetchData(symbols) {
 }
 
 function analyze(s) {
-  if (!s || !s.data) return null;
+  if (!s || !s.data || s.data.length === 0) {
+    return {
+      symbol: s?.symbol || "N/A",
+      price: 0,
+      percent: "0.00",
+      volume: 0,
+      signal: "NO DATA"
+    };
+  }
 
   const last = s.data[s.data.length - 1];
-  if (!last) return null;
 
-  const price = last.matchPrice;
-  const ref = last.referencePrice || price;
-  const volume = last.totalVolume;
+  const price = last.matchPrice || 0;
+  const ref = last.referencePrice || price || 1;
+  const volume = last.totalVolume || 0;
 
   const percent = ((price - ref) / ref) * 100;
 
