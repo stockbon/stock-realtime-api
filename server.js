@@ -29,6 +29,9 @@ async function fetchData(symbols) {
   return results.filter(Boolean);
 }
 
+  return results.filter(Boolean);
+}
+
 // ===== ANALYZE =====
 function analyze(s) {
   if (!s) return null;
