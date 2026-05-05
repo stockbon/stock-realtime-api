@@ -29,7 +29,6 @@ async function fetchBoard() {
     return res.data.data || [];
   } catch (err) {
     console.log("Fetch lỗi:", err.message);
-    //console.log(raw[0]);
     return [];
   }
 }
