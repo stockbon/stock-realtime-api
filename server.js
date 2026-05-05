@@ -16,7 +16,10 @@ async function fetchData(symbols) {
       try {
         const url = `https://iboard.ssi.com.vn/dchart/api/intraday?symbol=${symbol}`;
         const res = await axios.get(url);
-        return res.data;
+        return {
+          symbol,
+          data: res.data
+        };
       } catch {
         return null;
       }
