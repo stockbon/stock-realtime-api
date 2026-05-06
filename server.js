@@ -111,6 +111,7 @@ function buildBoard(list, raw) {
   return raw
     .filter(s => list.includes(s.sym))
     .map(mapStock)
+    .filter(s => s.price > 0 && s.vol > 0) // 👈 LỌC DATA RÁC
     .map(analyze)
     .sort((a, b) => b.vol - a.vol);
 }
