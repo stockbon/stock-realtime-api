@@ -23,6 +23,7 @@ async function fetchAll() {
       pageIndex: 1,
       pageSize: 500
     });
+    console.log(res.data.data[0]);
     return res.data.data || [];
   } catch {
     return [];
