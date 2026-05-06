@@ -7,95 +7,98 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3001;
 
+// ===== CONFIG =====
+const API = "https://priceboard.vietstock.vn/data/getstockdata";
+
 // ===== DANH SÁCH =====
 const BOARD1 = ["SHB","MSB","MBB","VIB","TPB","TCB","VPB","VCB","BID","CTG","FPT","VIX","VIC"];
 const BOARD2 = ["GAS","PVD","PVS","HAH","VSC","VJC","HVN","CMG"];
 const BOARD3 = ["DIG","DXG","SCR","HQC","ASM","IDI","VIX","SHB","TPB"];
 
-// ===== API VIETSTOCK =====
-const API = "https://priceboard.vietstock.vn/data/getstockdata";
-
-// ===== FETCH =====
+// ===== FETCH DATA =====
 async function fetchAll() {
   try {
     const res = await axios.post(API, {
       board: "HOSE",
       pageIndex: 1,
       pageSize: 500
+    }, {
+      headers: {
+        "Content-Type": "application/json"
+      }
     });
 
-    // 👇 kiểm tra structure thật
-    if (!res.data || !res.data.data) {
-      console.log("NO DATA");
-      return [];
-    }
-
-    return res.data.data;
+    return res.data?.data || [];
   } catch (err) {
     console.log("Fetch lỗi:", err.message);
     return [];
   }
 }
 
+// ===== MAP FIELD (CHỐNG LỆCH) =====
+function mapStock(s) {
+  return {
+    symbol: s.sym,
+
+    price:
+      Number(s.lastPrice) ||
+      Number(s.matchPrice) ||
+      Number(s.price) ||
+      0,
+
+    ref:
+      Number(s.refPrice) ||
+      Number(s.referencePrice) ||
+      0,
+
+    ceil:
+      Number(s.ceilingPrice) ||
+      Number(s.ceiling) ||
+      0,
+
+    floor:
+      Number(s.floorPrice) ||
+      Number(s.floor) ||
+      0,
+
+    vol:
+      Number(s.totalTradingVolume) ||
+      Number(s.matchedVol) ||
+      Number(s.totalVol) ||
+      Number(s.volume) ||
+      0
+  };
+}
+
 // ===== PHÂN TÍCH =====
-function analyze(s) {
-  // ===== AUTO MAP =====
-  const price =
-    Number(s.lastPrice) ||
-    Number(s.matchPrice) ||
-    Number(s.price) ||
-    0;
+function analyze(stock) {
+  const { symbol, price, ref, ceil, floor, vol } = stock;
 
-  const ref =
-    Number(s.refPrice) ||
-    Number(s.referencePrice) ||
-    price || 1;
+  const percent = ref ? ((price - ref) / ref) * 100 : 0;
 
-  const ceil =
-    Number(s.ceilingPrice) ||
-    Number(s.ceiling) ||
-    0;
-
-  const floor =
-    Number(s.floorPrice) ||
-    Number(s.floor) ||
-    0;
-
-  const vol =
-    Number(s.totalTradingVolume) ||
-    Number(s.matchedVol) ||
-    Number(s.totalVol) ||
-    Number(s.volume) ||
-    0;
-
-  const percent = ((price - ref) / ref) * 100;
-
-  // ===== DÒNG TIỀN =====
   let flow = "⚖️";
   if (vol > 3000000 && percent > 1.5) flow = "✅ mạnh";
   else if (vol < 1000000) flow = "❌ yếu";
 
-  // ===== XU HƯỚNG =====
   let trend = "Sideway";
   if (percent > 1.5) trend = "Tăng";
   else if (percent < -1.5) trend = "Giảm";
 
-  // ===== XẢ KÍN =====
   let dump = "🟡";
   if (vol > 3000000 && percent < 0.5) dump = "🔴";
 
-  // ===== ACTION =====
   let action = "Quan sát";
   if (flow === "✅ mạnh" && trend === "Tăng") action = "Canh mua";
   else if (dump === "🔴") action = "Tránh";
   else if (trend === "Tăng") action = "Lướt";
 
   return {
-    symbol: s.sym,
+    symbol,
     price,
     ceil,
     floor,
     vol,
+    percent: percent.toFixed(2),
     flow,
     trend,
     dump,
@@ -103,12 +106,13 @@ function analyze(s) {
   };
 }
 
-// ===== BUILD BOARD =====
+// ===== BUILD =====
 function buildBoard(list, raw) {
   return raw
     .filter(s => list.includes(s.sym))
+    .map(mapStock)
     .map(analyze)
-    .sort((a,b) => b.vol - a.vol);
+    .sort((a, b) => b.vol - a.vol);
 }
 
 // ===== ROUTES =====
@@ -127,10 +131,12 @@ app.get("/board3", async (req, res) => {
   res.json(buildBoard(BOARD3, raw));
 });
 
-app.listen(PORT, () => {
-  console.log("🚀 FULL REALTIME API READY");
-});
+// ===== DEBUG =====
 app.get("/debug", async (req, res) => {
   const raw = await fetchAll();
-  res.json(raw.slice(0, 5)); // lấy 5 mã đầu
+  res.json(raw.slice(0, 5));
+});
+
+app.listen(PORT, () => {
+  console.log("🚀 STOCK API READY");
 });
