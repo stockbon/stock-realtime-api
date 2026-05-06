@@ -100,3 +100,7 @@ app.get("/board3", async (req, res) => {
 app.listen(PORT, () => {
   console.log("🚀 FULL REALTIME API READY");
 });
+app.get("/debug", async (req, res) => {
+  const raw = await fetchAll();
+  res.json(raw.slice(0, 5)); // lấy 5 mã đầu
+});
