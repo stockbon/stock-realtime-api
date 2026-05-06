@@ -23,20 +23,50 @@ async function fetchAll() {
       pageIndex: 1,
       pageSize: 500
     });
-    console.log(res.data.data[0]);
-    return res.data.data || [];
-  } catch {
+
+    // 👇 kiểm tra structure thật
+    if (!res.data || !res.data.data) {
+      console.log("NO DATA");
+      return [];
+    }
+
+    return res.data.data;
+  } catch (err) {
+    console.log("Fetch lỗi:", err.message);
     return [];
   }
 }
 
 // ===== PHÂN TÍCH =====
 function analyze(s) {
-  const price = Number(s.lastPrice) || 0;
-  const ref = Number(s.refPrice) || price || 1;
-  const ceil = Number(s.ceiling) || 0;
-  const floor = Number(s.floor) || 0;
-  const vol = Number(s.matchedVol) || 0;
+  // ===== AUTO MAP =====
+  const price =
+    Number(s.lastPrice) ||
+    Number(s.matchPrice) ||
+    Number(s.price) ||
+    0;
+
+  const ref =
+    Number(s.refPrice) ||
+    Number(s.referencePrice) ||
+    price || 1;
+
+  const ceil =
+    Number(s.ceilingPrice) ||
+    Number(s.ceiling) ||
+    0;
+
+  const floor =
+    Number(s.floorPrice) ||
+    Number(s.floor) ||
+    0;
+
+  const vol =
+    Number(s.totalTradingVolume) ||
+    Number(s.matchedVol) ||
+    Number(s.totalVol) ||
+    Number(s.volume) ||
+    0;
 
   const percent = ((price - ref) / ref) * 100;
 
@@ -54,7 +84,7 @@ function analyze(s) {
   let dump = "🟡";
   if (vol > 3000000 && percent < 0.5) dump = "🔴";
 
-  // ===== HÀNH ĐỘNG =====
+  // ===== ACTION =====
   let action = "Quan sát";
   if (flow === "✅ mạnh" && trend === "Tăng") action = "Canh mua";
   else if (dump === "🔴") action = "Tránh";
